@@ -6,7 +6,11 @@ from matplotlib.animation import FuncAnimation
 from autograd import grad
 
 global target
-target = np.array([-10, 3], dtype=float)
+target = np.array([22.1, 0], dtype=float)
+global limits
+limits = [(math.radians(-20), math.radians(20)),
+          (math.radians(-100), math.radians(100)),
+          (math.radians(-100), math.radians(100))]
 
 
 # joints (d, theta, r, alpha)
@@ -63,6 +67,10 @@ def cost(t):
     m = matrix(joints, t).pop()
     l = np.array([m[0, 3], m[1, 3]])
 
+    for th, lim in zip(t, limits):
+        if th < lim[0] or th > lim[1]:
+            return 1000000.0
+
     return np.linalg.norm(l - target) ** 2
 
 
@@ -90,6 +98,11 @@ def animate(i):
     mat = matrix(joints, theta)
 
     theta -= 0.00075 * c(theta)
+    for i, lim in enumerate(limits):
+        if theta[i] < lim[0]:
+           theta[i] = float(lim[0])
+        elif theta[i] > lim[1]:
+            theta[i] = float(lim[1])
 
     x, y = find_coords(mat)
     line.set_data(x, y)
